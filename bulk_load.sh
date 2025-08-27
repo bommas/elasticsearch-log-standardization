@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # === CONFIGURATION ===
-API_KEY="SkVRaW5KZ0JRSy1YVXFsbEhrS206YTRjZ0lmMU5UTzF5b09vVW12SzBYQQ=="
+API_KEY=""
 ES_URL="https://dellollypoc.es.us-east-1.aws.found.io"
 INDEX="logs1-raw"
 PIPELINE="logs_standardizer"
