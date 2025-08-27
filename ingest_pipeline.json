@@ -1,0 +1,74 @@
+{
+  "description": "Extract required fields from log events, preserving msg field as-is",
+  "processors": [
+    {
+      "script": {
+        "description": "Extract ErrorType_RAW from multiple candidates",
+        "source": "String err = null; if (ctx.containsKey('msg') && ctx.msg != null) { String msgStr = ctx.msg.toString(); if (msgStr.contains('@mt')) { def matcher = /@mt[\"']?[=:][\"']?([^,}\"']+)/.matcher(msgStr); if (matcher.find()) { err = matcher.group(1); } } else if (msgStr.contains('@m')) { def matcher = /@m[\"']?[=:][\"']?([^,}\"']+)/.matcher(msgStr); if (matcher.find()) { err = matcher.group(1); } } } if (err == null) { if (ctx.containsKey('@mt') && ctx['@mt'] != null) { err = ctx['@mt'].toString(); } else if (ctx.containsKey('@m') && ctx['@m'] != null) { err = ctx['@m'].toString(); } } if (err != null) { ctx.ErrorType_RAW = err.trim(); }"
+      }
+    },
+    {
+      "script": {
+        "description": "Create ErrorType from ErrorType_RAW",
+        "source": "if (ctx.containsKey('ErrorType_RAW') && ctx.ErrorType_RAW != null) { def raw = ctx.ErrorType_RAW.toString().toLowerCase(); if (raw.contains('null or empty')) { ctx.ErrorType = 'NullOrEmptyData'; } else if (raw.contains('stored offset')) { ctx.ErrorType = 'OffsetStored'; } else if (raw.contains('received message')) { ctx.ErrorType = 'MessageReceived'; } else if (raw.contains('processed')) { ctx.ErrorType = 'Processed'; } else if (raw.contains('timeout')) { ctx.ErrorType = 'Timeout'; } else if (raw.contains('unauthorized') || raw.contains('forbidden')) { ctx.ErrorType = 'AuthFailure'; } else if (raw.contains('error') || raw.contains('exception') || raw.contains('fail')) { ctx.ErrorType = 'Failure'; } else { ctx.ErrorType = 'Other'; } }"
+      }
+    },
+    {
+      "grok": {
+        "field": "VisitorId",
+        "patterns": ["%{DATA}\\|MCMID\\|%{DATA:MCMID}\\|%{GREEDYDATA}"],
+        "ignore_missing": true
+      }
+    },
+    {
+      "script": {
+        "description": "Extract country from msg field as string",
+        "source": "String country = null; if (ctx.containsKey('msg') && ctx.msg != null) { String msgStr = ctx.msg.toString(); def matcher = /Country[=:\\s]*[\"']?([a-zA-Z]{2})[\"']?/.matcher(msgStr); if (matcher.find()) { country = matcher.group(1); } } if (country != null) { ctx.country = country; }"
+      }
+    },
+    {
+      "script": {
+        "description": "Extract language from msg field as string",
+        "source": "String language = null; if (ctx.containsKey('msg') && ctx.msg != null) { String msgStr = ctx.msg.toString(); def matcher = /Language[=:\\s]*[\"']?([a-zA-Z]{2})[\"']?/.matcher(msgStr); if (matcher.find()) { language = matcher.group(1); } } if (language != null) { ctx.language = language; }"
+      }
+    },
+    {
+      "script": {
+        "description": "Extract ClientIP from msg field",
+        "source": "String clientIP = null; if (ctx.containsKey('msg') && ctx.msg != null) { String msgStr = ctx.msg.toString(); def matcher = /ClientIP[=:\\s]*[\"']?([0-9.]+)[\"']?/.matcher(msgStr); if (matcher.find()) { clientIP = matcher.group(1); } } if (clientIP != null && clientIP.length() > 0) { ctx.ClientIP = clientIP; }"
+      }
+    },
+    {
+      "script": {
+        "description": "Extract log_level from @l or msg.@l",
+        "source": "String lvl = null; if (ctx.containsKey('@l') && ctx['@l'] != null) { lvl = ctx['@l'].toString(); } else if (ctx.containsKey('msg') && ctx.msg != null) { String msgStr = ctx.msg.toString(); def matcher = /@l[\"']?[=:][\"']?([^,}\"']+)/.matcher(msgStr); if (matcher.find()) { lvl = matcher.group(1); } } if (lvl != null) { ctx.log_level = lvl.trim(); }"
+      }
+    },
+    {
+      "script": {
+        "description": "Extract Panel_PCF_App from cf_app_name fields",
+        "source": "String app = null; if (ctx.containsKey('cf_app_name') && ctx.cf_app_name != null) { app = ctx.cf_app_name.toString(); } else if (ctx.containsKey('msg') && ctx.msg != null) { String msgStr = ctx.msg.toString(); def matcher = /cf_app_name[\"']?[=:][\"']?([^,}\"']+)/.matcher(msgStr); if (matcher.find()) { app = matcher.group(1); } } if (app != null) { ctx.Panel_PCF_App = app.trim(); }"
+      }
+    },
+    {
+      "script": {
+        "description": "Convert timestamp from unix epoch to Elasticsearch date",
+        "source": "if (ctx.containsKey('timestamp') && ctx.timestamp != null && ctx['@timestamp'] == null) { try { long ts = Long.parseLong(ctx.timestamp.toString()); if (ts > 0) { long tsMillis = 0; if (ts > 1000000000000000000L) { tsMillis = ts / 1000000; } else if (ts > 1000000000000000L) { tsMillis = ts / 1000; } else if (ts > 1000000000000L) { tsMillis = ts; } else if (ts > 1000000000L) { tsMillis = ts * 1000; } else { tsMillis = ts * 1000; } if (tsMillis > 0) { ctx['@timestamp'] = Instant.ofEpochMilli(tsMillis); } } } catch (Exception e) { } }"
+      }
+    },
+    {
+      "remove": {
+        "field": "timestamp",
+        "ignore_missing": true
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "set": {
+        "field": "ingest_error",
+        "value": "{{ _ingest.on_failure_message }}"
+      }
+    }
+  ]
+}

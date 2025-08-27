@@ -1,0 +1,33 @@
+# Temporary files
+*.tmp
+*.temp
+bulk.json
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Elasticsearch bulk files
+bulk_*.json
+
+# Log files
+*.log
+
+# Environment files (if you add them later)
+.env
+.env.local
+
+# API keys (safety check)
+*api_key*
+*API_KEY*
+
+# Backup files
+*.bak
+*.backup

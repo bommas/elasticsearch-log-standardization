@@ -1,0 +1,53 @@
+{
+  "index_patterns": ["logs1-*"],
+  "template": {
+    "settings": {
+      "index.mapping.ignore_malformed": true,
+      "index.mapping.coerce": true,
+      "index.default_pipeline": "logs_standardizer"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis||epoch_second"
+        },
+        "ErrorType_RAW": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 1024
+            }
+          }
+        },
+        "ErrorType": {
+          "type": "keyword"
+        },
+        "MCMID": {
+          "type": "keyword"
+        },
+        "country": {
+          "type": "keyword"
+        },
+        "language": {
+          "type": "keyword"
+        },
+        "ClientIP": {
+          "type": "keyword"
+        },
+        "log_level": {
+          "type": "keyword"
+        },
+        "Panel_PCF_App": {
+          "type": "keyword"
+        },
+        "msg": {
+          "enabled": false
+        }
+      }
+    }
+  },
+  "priority": 100
+}
