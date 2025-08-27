@@ -14,10 +14,9 @@
       }
     },
     {
-      "grok": {
-        "field": "VisitorId",
-        "patterns": ["%{DATA}\\|MCMID\\|%{DATA:MCMID}\\|%{GREEDYDATA}"],
-        "ignore_missing": true
+      "script": {
+        "description": "Extract MCMID from VisitorId field in msg object",
+        "source": "String mcmid = null; if (ctx.containsKey('msg') && ctx.msg != null) { String msgStr = ctx.msg.toString(); if (msgStr.contains('VisitorId') && msgStr.contains('MCMID')) { def matcher = /\\|MCMID\\|([^\\|]+)\\|/.matcher(msgStr); if (matcher.find()) { mcmid = matcher.group(1); } } } if (mcmid != null) { ctx.MCMID = mcmid; }"
       }
     },
     {
