@@ -50,7 +50,7 @@ graph LR
     C --> E[Standardized Fields]
     D --> E
     
-    subgraph "Extracted Fields"
+    subgraph Extracted_Fields
         E --> E1[ErrorType_RAW]
         E --> E2[ErrorType]
         E --> E3[MCMID]
@@ -61,9 +61,6 @@ graph LR
         E --> E8[Panel_PCF_App]
         E --> E9[@timestamp]
     end
-    
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style E fill:#9f9,stroke:#333,stroke-width:2px
 ```
 
 ## 📁 Project Structure
