@@ -59,7 +59,7 @@ graph LR
         E --> E6[ClientIP]
         E --> E7[log_level]
         E --> E8[Panel_PCF_App]
-        E --> E9[@timestamp]
+        E --> E9[timestamp]
     end
 ```
 
